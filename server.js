@@ -76,7 +76,7 @@ app.post('/api/suggestions', rateLimit, async (req, res) => {
 
 app.use(['/admin', '/admin.html', '/api/admin'], requireAdmin);
 
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
+app.get(['/admin', '/admin.html'], (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 
 app.get('/api/admin/suggestions', async (req, res) => {
   const { rows } = await pool.query(
