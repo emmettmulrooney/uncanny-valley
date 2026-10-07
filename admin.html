@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Admin — The Uncanny Valley</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <div class="kicker">Private</div>
+      <h1>Suggestion <span>Admin</span></h1>
+      <p class="tagline">Approve puts it on the wall. Delete removes it for good.</p>
+    </header>
+
+    <h2>Waiting for approval</h2>
+    <div id="pending" class="wall"></div>
+
+    <h2>On the wall</h2>
+    <div id="approved" class="wall"></div>
+  </main>
+  <script>
+    const pending = document.getElementById('pending');
+    const approved = document.getElementById('approved');
+
+    function makeButton(label, className, onClick) {
+      const b = document.createElement('button');
+      b.textContent = label;
+      if (className) b.className = className;
+      b.addEventListener('click', onClick);
+      return b;
+    }
+
+    async function act(method, url) {
+      const res = await fetch(url, { method });
+      if (!res.ok) alert('That didn\u2019t work. Try refreshing.');
+      load();
+    }
+
+    async function load() {
+      const res = await fetch('/api/admin/suggestions');
+      const items = await res.json();
+      pending.replaceChildren();
+      approved.replaceChildren();
+      for (const item of items) {
+        const card = document.createElement('div');
+        card.className = 'post' + (item.approved ? '' : ' pending');
+        const text = document.createElement('div');
+        text.textContent = item.text;
+        const when = document.createElement('p');
+        when.className = 'note';
+        when.textContent = new Date(item.created_at).toLocaleString();
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+        if (!item.approved) {
+          actions.append(makeButton('Approve', '', () => act('POST', `/api/admin/suggestions/${item.id}/approve`)));
+        }
+        actions.append(makeButton('Delete', 'delete', () => {
+          if (confirm('Delete this suggestion for good?')) act('DELETE', `/api/admin/suggestions/${item.id}`);
+        }));
+        card.append(text, when, actions);
+        (item.approved ? approved : pending).append(card);
+      }
+      if (!pending.children.length) pending.innerHTML = '<p class="note">Nothing waiting.</p>';
+      if (!approved.children.length) approved.innerHTML = '<p class="note">Nothing approved yet.</p>';
+    }
+
+    load();
+  </script>
+</body>
+</html>

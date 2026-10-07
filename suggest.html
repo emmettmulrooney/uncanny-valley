@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Suggestion Box — The Uncanny Valley</title>
+  <meta name="description" content="Suggest an entity, a person, a place, or anything else for the Uncanny Valley.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <nav class="topnav">
+      <a href="index.html">Lore</a>
+      <a href="entities.html">Entities</a>
+      <a href="people.html">People &amp; Places</a>
+      <a href="suggest.html" aria-current="page">Suggestion Box</a>
+    </nav>
+
+    <header>
+      <div class="kicker">Leave something behind</div>
+      <h1>Suggestion <span>Box</span></h1>
+      <p class="tagline">An entity, a person, a place, a rule of the Valley. What should be in here?</p>
+    </header>
+
+    <form id="suggest">
+      <label for="idea">Your suggestion</label>
+      <textarea id="idea" name="idea" maxlength="1000" required placeholder="Something in the 6th circle is..."></textarea>
+      <p class="note">Suggestions show up on the wall below once they're approved. Please don't include your name, email, or anything personal.</p>
+      <button type="submit">Drop it in the box</button>
+      <p class="status" id="status" role="status"></p>
+    </form>
+
+    <h2>The wall</h2>
+    <div id="wall" class="wall"><p class="note">Loading…</p></div>
+
+    <footer>The Uncanny Valley · a show by Emmett &amp; friends</footer>
+  </main>
+  <script>
+    const form = document.getElementById('suggest');
+    const status = document.getElementById('status');
+    const wall = document.getElementById('wall');
+
+    async function loadWall() {
+      try {
+        const res = await fetch('/api/suggestions');
+        const items = await res.json();
+        wall.replaceChildren();
+        if (!items.length) {
+          wall.innerHTML = '<p class="note">Nothing on the wall yet. Be the first.</p>';
+          return;
+        }
+        for (const item of items) {
+          const card = document.createElement('blockquote');
+          card.className = 'post';
+          card.textContent = item.text;
+          wall.append(card);
+        }
+      } catch {
+        wall.innerHTML = '<p class="note">The wall couldn\u2019t load. Try refreshing.</p>';
+      }
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const button = form.querySelector('button');
+      button.disabled = true;
+      status.textContent = '';
+      try {
+        const res = await fetch('/api/suggestions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: form.idea.value }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        form.reset();
+        status.textContent = 'Got it. It\u2019ll show up on the wall once it\u2019s approved.';
+      } catch (err) {
+        status.textContent = err.message || 'Something went wrong. Try again.';
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    loadWall();
+  </script>
+</body>
+</html>
