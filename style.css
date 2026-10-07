@@ -8,7 +8,6 @@
   --card: #141317;
 }
 * { box-sizing: border-box; }
-body { display: none !important; }
 html { scroll-behavior: smooth; }
 body {
   margin: 0;
