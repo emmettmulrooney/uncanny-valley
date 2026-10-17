@@ -95,7 +95,7 @@ app.delete('/api/admin/suggestions/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
-const PUBLIC_FILES = ['index.html', 'entities.html', 'people.html', 'suggest.html', 'style.css'];
+const PUBLIC_FILES = ['index.html', 'entities.html', 'people.html', 'suggest.html', 'style.css', 'favicon.svg'];
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/:file', (req, res, next) => {
   if (!PUBLIC_FILES.includes(req.params.file)) return next();
